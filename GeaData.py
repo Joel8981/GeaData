@@ -35,8 +35,34 @@ def crear_Csv(CSV):
         except:
             print("Hubo un error al crear el archivo.")
 
+def mostrar_opciones():
+    
+    print(" --- MENU PRINCIPAL ---")
+    print("""
+   -> 1. Buscar pais 🌍
+   -> 2. Filtrar Paises 🔎🏙️
+   -> 3. Ordenar por (nombre, poblacion o superficie) ⌨️
+   -> 4. Mostrar estadisticas 🧮
+   -> 5. Salir 🏃‍♂️‍➡️""")
+#Creamos el menu
+def main():
+    
+    #Creamos un bucle para darle al usuario que interactue tantas veces como quiera
+    while True:
+        
+        #Llamamos a una funcion que nos mostrara el menu principal
+        mostrar_opciones()
+        
+        opc = int(input("Ingresa el numero de opcion: "))
+        
+        break
 
+#  -------- INICIO DEL PROGRAMA PRINCIPAL ------------------
 #Creamos el nombre del archivo csv con su extension
 CSV = "paises.csv"
 
+#Funcion para crear csv si no existe
 crear_Csv(CSV)
+
+#Llamamos a la funcion del menu
+main()
