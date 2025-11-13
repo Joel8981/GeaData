@@ -56,11 +56,6 @@ El programa opera a través de un **Menú Principal** de consola. Debes ingresar
 | **4** | Mostrar un resumen estadístico global y por continente. |
 | **5** | Salir del programa. |
 
-**Salida de Ejemplo (Opción 4: Estadísticas por Continente)**
-
---- Estadísticas por Continente --- continente Poblacion_Total Superficie_Total Países America 297,616,308 21,280,837 km² 3 Asia 125,800,000 377,975 km² 1 Europa 83,149,300 357,022 km² 1
-
-***
 
 ## 👥 Participación de los Integrantes
 
