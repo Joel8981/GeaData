@@ -67,39 +67,45 @@ def mostrar_opciones():
 
 # -------------------- MODO LECTURA Y FILTRADO (Opciones 1 y 2) --------------------
 def modo_lectura_csv(CSV, opcion, buscar=None):
-    """
-    Carga el CSV usando Pandas y realiza la búsqueda o muestra todos los datos.
-    :param CSV: Nombre del archivo.
-    :param opcion: 1 para buscar, 2 para mostrar todo.
-    :param buscar: Nombre del país a buscar (solo usado si opcion == 1).
-    """
-    try:
-        # Cargamos el CSV en un DataFrame de Pandas para operaciones sencillas de filtrado.
-        df = pd.read_csv(CSV)
-    except Exception as e:
-        print(f"❌ Error al leer el archivo: {e}")
-        return
+    found = False
 
-    if opcion == 1:
-        # Filtramos el DataFrame donde el nombre del país (en minúsculas) coincida con la búsqueda.
-        pais_buscado = df[df['nombre'].str.lower() == buscar.lower()]
+    #Abrimos el archivo en modo lectura para buscar
+    with open(CSV, "r") as archivo_Csv:
+    
+        # Creamos el objeto DictReader.
+        #Transformamos cada columna del archivo csv en claves
+        lector_diccionario = csv.DictReader(archivo_Csv)
+
+        #
+        #Con un bucle recorremos para buscar el pais del usuario
+        if opcion == 2:
+             print("\n--- LISTA COMPLETA DE PAÍSES ---")
+             print("-" * 60)
         
-        if not pais_buscado.empty:
-            print("-------------------------------------------------------")
-            # Obtenemos la primera fila (iloc[0]) del resultado.
-            fila = pais_buscado.iloc[0]
-            # Imprimimos los detalles, usando formato de miles (:,) para números grandes.
-            print(f" ->> País: {fila['nombre']} || Población: {fila['poblacion']:,} || Superficie: {fila['superficie']:,} km² || Continente: {fila['continente']} ")
-            print("-------------------------------------------------------")
-        else:
-            print(f"\n🚫 País '{buscar}' no encontrado.")
+        for filas in lector_diccionario:
             
-    elif opcion == 2:
-        print("\n--- LISTA COMPLETA DE PAÍSES ---")
-        print("-" * 60)
-        # to_string(index=False) imprime el DataFrame sin los índices de fila de Pandas, mejorando la presentación.
-        print(df.to_string(index=False))
-        print("-" * 60)
+            #Defini en variables cada clave del diccionario
+            nombre_pais = filas["nombre"]
+            poblacion = filas["poblacion"]
+            superficie = filas["superficie"]
+            continente = filas["continente"]
+
+            #Condicional para la opcion 1 (buscar y mostrar el pais buscante)
+            if opcion == 1:
+                if nombre_pais.lower() == buscar.lower():
+                    print("-------------------------------------------------------")
+                    print(f" ->> Pais: {nombre_pais} || Poblacion: {poblacion} || Superficie: {superficie} km² || Continente: {continente} ")
+                    print("-----------------------------------------------------------")
+                    found = True
+                    break
+
+            #Este para la opcion 2 (mostrar todos lo paises con su informacion )
+            elif opcion == 2:
+                print(f" - Pais: {nombre_pais} || Poblacion: {poblacion} || Superficie: {superficie} km² || Continente: {continente} ")
+                continue
+
+        if opcion == 1 and not found:
+             print(f"\n🚫 País '{buscar}' no encontrado.")
             
 def buscar_pais(CSV):
     """Pide el nombre del país y llama a la función de lectura/filtrado."""
@@ -162,54 +168,92 @@ def ordenar_paises(CSV):
 
 # -------------------- ESTADÍSTICAS (Opción 4 - CORREGIDA Y Optimizada con Pandas) --------------------
 def mostrar_estadisticas(CSV):
+    
     """
-    Calcula y muestra estadísticas clave (máximos, mínimos, totales) usando Pandas.
-    Esta función es la que más se beneficia de la eficiencia de Pandas.
+    Calcula y muestra estadísticas clave (totales, promedios, extremos y conteo por continente)
+    usando solo el módulo CSV y lógica de Python.
     """
+    poblacion_total = 0
+    superficie_total = 0.0
+    conteo_paises = 0  
+    
+    max_pob = -1
+    min_pob = float('inf')
+    pais_max = ""
+    pais_min = ""
+    
+    # Diccionario para contar países por continente
+    paises_por_continente = {} 
+    
     try:
-        df = pd.read_csv(CSV)
-        # Conversión explícita a numérico para asegurar cálculos correctos. 
-        # Esto es vital, ya que Python leería estos campos como cadenas por defecto del CSV.
-        df['poblacion'] = pd.to_numeric(df['poblacion'], errors='coerce')
-        df['superficie'] = pd.to_numeric(df['superficie'], errors='coerce')
-    except Exception as e:
-        print(f"❌ Error al cargar datos para estadísticas: {e}")
+        with open(CSV, mode='r', newline="") as archivo:
+            lector = csv.DictReader(archivo)
+            
+            for fila in lector:
+                try:
+                    poblacion = int(fila['poblacion'])
+                    superficie = float(fila['superficie'])
+                    continente = fila['continente']
+                    
+                    # 1. CÁLCULO DE TOTALES Y CONTEO GLOBAL
+                    poblacion_total += poblacion
+                    superficie_total += superficie
+                    conteo_paises += 1 
+                    
+                    # 2. AGRUPACIÓN POR CONTINENTE
+                    # Si el continente no está en el diccionario, lo inicializa; si ya está, suma 1.
+                    if continente in paises_por_continente:
+                        paises_por_continente[continente] += 1
+                    else:
+                        paises_por_continente[continente] = 1
+                    
+                    # 3. BÚSQUEDA DE MÁXIMOS Y MÍNIMOS
+                    if poblacion > max_pob:
+                        max_pob = poblacion
+                        pais_max = fila['nombre']
+                        
+                    if poblacion < min_pob:
+                        min_pob = poblacion
+                        pais_min = fila['nombre']
+
+                except ValueError:
+                    # Ignorar filas donde los datos numéricos no son válidos
+                    continue
+                    
+    except FileNotFoundError:
+        print(f"❌ Error: El archivo '{CSV}' no fue encontrado.")
         return
+    
+    # --- CÁLCULO DE PROMEDIOS ---
+    poblacion_promedio = 0
+    superficie_promedio = 0.0
+    
+    if conteo_paises > 0:
+        poblacion_promedio = poblacion_total / conteo_paises
+        superficie_promedio = superficie_total / conteo_paises
 
+    # ------------------ IMPRESIÓN DE RESULTADOS ------------------
+    
+    ## Totales y Promedios
     print("\n--- RESUMEN ESTADÍSTICO DE PAÍSES ---")
-    print("-" * 40)
+    print("-" * 35)
     
-    # 1. Población Total (usando df['columna'].sum())
-    poblacion_total = df['poblacion'].sum()
-    print(f"🌎 Población Total (Muestra): {poblacion_total:,.0f} habitantes") # Formato con separadores de miles
-
-    # 2. Máximos y Mínimos (usando idxmax/idxmin)
-    # idxmax() devuelve el índice de la fila que contiene el valor máximo.
-    idx_max_pob = df['poblacion'].idxmax()
-    pais_max_pob = df.loc[idx_max_pob] # df.loc[] recupera la fila completa por índice.
+    print(f" Población Total:    {poblacion_total:,.0f} habitantes")
+    print(f" Superficie Total:   {superficie_total:,.0f} km²")
+    print(f" Población Promedio: {poblacion_promedio:,.2f} habitantes")
+    print(f" Sup. Promedio:      {superficie_promedio:,.2f} km²")
+    print("-" * 35)
     
-    idx_min_pob = df['poblacion'].idxmin()
-    pais_min_pob = df.loc[idx_min_pob]
+    ## Extremos
+    print(f" Mayor Población:    {pais_max} ({max_pob:,.0f})")
+    print(f" Menor Población:    {pais_min} ({min_pob:,.0f})")
+    print("-" * 35)
     
-    print(f"⬆️ Mayor Población: {pais_max_pob['nombre']} ({pais_max_pob['poblacion']:,.0f})")
-    print(f"⬇️ Menor Población: {pais_min_pob['nombre']} ({pais_min_pob['poblacion']:,.0f})")
-
-    # 3. Agrupación por Continente (usando groupby)
-    print("\n--- Estadísticas por Continente ---")
-    # Agrupamos por la columna 'continente' y aplicamos funciones de agregación (sumar, contar).
-    resumen_continente = df.groupby('continente').agg(
-        Poblacion_Total=('poblacion', 'sum'),
-        Superficie_Total=('superficie', 'sum'),
-        Países=('nombre', 'size') # size cuenta cuántos elementos hay en cada grupo.
-    ).reset_index()
-
-    # Formateamos los resultados para una mejor lectura en la salida.
-    resumen_continente['Poblacion_Total'] = resumen_continente['Poblacion_Total'].apply(lambda x: f"{x:,.0f}")
-    resumen_continente['Superficie_Total'] = resumen_continente['Superficie_Total'].apply(lambda x: f"{x:,.0f} km²")
-    
-    print(resumen_continente.to_string(index=False))
-    print("-" * 40)
-
+    ## Conteo por Continente
+    print("📋 Países Contados por Continente:")
+    for continente, conteo in paises_por_continente.items():
+        print(f"   -> {continente}: {conteo} países")
+    print("-" * 35)
 
 # -------------------- BUCLE PRINCIPAL DEL PROGRAMA --------------------
 def main(CSV):
