@@ -1,5 +1,5 @@
 # ==============================================================================
-# GESTIÓN DE DATOS DE PAÍSE
+# GESTIÓN DE DATOS DE PAÍSES
 # Este programa gestiona datos geográficos y demográficos de países
 # utilizando la biblioteca estándar 'csv'.
 # ==============================================================================
@@ -117,7 +117,7 @@ def filtrar_paises(CSV):
     """Muestra la lista completa de países."""
     modo_lectura_csv(CSV, 2)
 
-# -------------------- ORDENAMIENTO (Opción 3 - Pandas) --------------------
+# -------------------- ORDENAMIENTO --------------------
 def ordenar_paises(CSV):
     """
     Permite al usuario ordenar los datos por la columna seleccionada (nombre, poblacion, superficie)
@@ -198,7 +198,7 @@ def ordenar_paises(CSV):
 
     print("-" * 80)
 
-# -------------------- ESTADÍSTICAS (Opción 4 - CORREGIDA Y Optimizada con Pandas) --------------------
+# -------------------- ESTADÍSTICAS --------------------
 def mostrar_estadisticas(CSV):
     
     """
